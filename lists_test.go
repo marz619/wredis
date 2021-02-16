@@ -5,9 +5,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("WredisLists", func() {
-
-	var testList = "wredis::test::list"
+var _ = Describe("Lists", func() {
+	testList := "wredis::test::list"
 
 	BeforeEach(func() {
 		unsafe.Del(testList)
@@ -17,7 +16,7 @@ var _ = Describe("WredisLists", func() {
 		It("should return an error when no key provided", func() {
 			_, err := safe.LPush("")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("key cannot be empty"))
+			Ω(err.Error()).Should(Equal("wredis: empty key"))
 		})
 
 		It("should return an error when no items provided", func() {
@@ -53,7 +52,7 @@ var _ = Describe("WredisLists", func() {
 		It("should return an error when no key provided", func() {
 			_, err := safe.RPop("")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("key cannot be empty"))
+			Ω(err.Error()).Should(Equal("wredis: empty key"))
 		})
 
 		It("should return an error when popping from an empty list", func() {
@@ -77,7 +76,7 @@ var _ = Describe("WredisLists", func() {
 		It("should return an error when no key provided", func() {
 			_, err := safe.LLen("")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("key cannot be empty"))
+			Ω(err.Error()).Should(Equal("wredis: empty key"))
 		})
 
 		It("should return 0 when the list doesn't exist", func() {

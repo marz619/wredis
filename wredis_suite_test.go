@@ -1,31 +1,37 @@
 package wredis_test
 
 import (
+	"testing"
+
 	. "github.com/crowdriff/wredis"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"testing"
 )
 
 // TestProcess is the root test process
 func TestProcess(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Wredis Suite")
+	RunSpecs(t, "poolClient Suite")
 }
 
-// safe and unsafe are global pointer to Wredis
+// safe and unsafe are global pointer to poolClient
 // objects used for testing
-var safe *Wredis
-var unsafe *Wredis
+var (
+	safe   Wredis
+	unsafe Wredis
+)
 
 // BeforeSuite
 var _ = BeforeSuite(func() {
 	var err error
-	safe, err = NewDefaultPool()
+
+	// init safe poolClient
+	safe, err = Safe()
 	Ω(err).Should(BeNil())
-	unsafe, err = NewUnsafe("localhost", 6379, 0)
+
+	// init unsafe poolClient
+	unsafe, err = Unsafe()
 	Ω(err).Should(BeNil())
 })
 

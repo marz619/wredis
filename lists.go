@@ -6,19 +6,19 @@ import (
 
 // LPush inserts the provided item(s) at the head of the list stored at key. For
 // more information, see http://redis.io/commands/lpush.
-func (w *Wredis) LPush(key string, items ...string) (int64, error) {
-	if key == "" {
-		return int64Error("key cannot be empty")
+func (w *poolClient) LPush(key string, items ...string) (int64, error) {
+	if empty(key) {
+		return int64Err("wredis: empty key")
 	}
 	if len(items) == 0 {
-		return int64Error("must provide at least one item")
+		return int64Err("must provide at least one item")
 	}
 	for _, i := range items {
-		if i == "" {
-			return int64Error("an item cannot be empty")
+		if empty(i) {
+			return int64Err("an item cannot be empty")
 		}
 	}
-	return w.ExecInt64(func(conn redis.Conn) (int64, error) {
+	return w.Int64(func(conn redis.Conn) (int64, error) {
 		args := redis.Args{}.Add(key).AddFlat(items)
 		return redis.Int64(conn.Do("LPUSH", args...))
 	})
@@ -26,11 +26,11 @@ func (w *Wredis) LPush(key string, items ...string) (int64, error) {
 
 // RPop removes and returns the last element of the list stored at key. For more
 // information, see http://redis.io/commands/rpop.
-func (w *Wredis) RPop(key string) (string, error) {
-	if key == "" {
-		return stringError("key cannot be empty")
+func (w *poolClient) RPop(key string) (string, error) {
+	if empty(key) {
+		return stringErr("wredis: empty key")
 	}
-	return w.ExecString(func(conn redis.Conn) (string, error) {
+	return w.String(func(conn redis.Conn) (string, error) {
 		args := redis.Args{}.Add(key)
 		return redis.String(conn.Do("RPOP", args...))
 	})
@@ -38,11 +38,11 @@ func (w *Wredis) RPop(key string) (string, error) {
 
 // LLen returns the length of the list stored at key. For more information, see
 // http://redis.io/commands/llen.
-func (w *Wredis) LLen(key string) (int64, error) {
-	if key == "" {
-		return int64Error("key cannot be empty")
+func (w *poolClient) LLen(key string) (int64, error) {
+	if empty(key) {
+		return int64Err("wredis: empty key")
 	}
-	return w.ExecInt64(func(conn redis.Conn) (int64, error) {
+	return w.Int64(func(conn redis.Conn) (int64, error) {
 		args := redis.Args{}.Add(key)
 		return redis.Int64(conn.Do("LLEN", args...))
 	})

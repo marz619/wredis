@@ -6,7 +6,6 @@ import (
 )
 
 var _ = Describe("Sets", func() {
-
 	var (
 		testKey  = "wredis::test::sets::one"
 		otherKey = "wredis::test::sets::two"
@@ -16,26 +15,26 @@ var _ = Describe("Sets", func() {
 	)
 
 	BeforeEach(func() {
-		Ω(unsafe.SAdd(testKey, testSet)).Should(BeEquivalentTo(3))
-		Ω(unsafe.SAdd(otherKey, otherSet)).Should(BeEquivalentTo(4))
+		Ω(unsafe.SAdd(testKey, testSet...)).Should(BeEquivalentTo(3))
+		Ω(unsafe.SAdd(otherKey, otherSet...)).Should(BeEquivalentTo(4))
 	})
 
 	AfterEach(func() {
 		Ω(unsafe.FlushAll()).Should(Succeed())
 	})
 
-	Context("SADD", func() {
+	Context("SAdd", func() {
 		It("should Add members to an existing set successfully", func() {
-			Ω(safe.SAdd(testKey, otherSet)).Should(BeEquivalentTo(2))
+			Ω(safe.SAdd(testKey, otherSet...)).Should(BeEquivalentTo(2))
 		})
 
 		It("should fail if an empty slice is passed to SAdd", func() {
-			_, err := safe.SAdd(testKey, []string{})
-			Ω(err).ShouldNot(BeNil())
+			_, err := safe.SAdd(testKey, []string{}...)
+			Ω(err.Error()).Should(Equal("wredis: no members"))
 		})
 	})
 
-	Context("SCARD", func() {
+	Context("SCard", func() {
 		It("should return the correct count of members in a set", func() {
 			Ω(safe.SCard(testKey)).Should(BeEquivalentTo(3))
 			Ω(safe.SCard(otherKey)).Should(BeEquivalentTo(4))
@@ -44,12 +43,12 @@ var _ = Describe("Sets", func() {
 		It("should fail given an empty key", func() {
 			_, err := safe.SCard("")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("key cannot be empty"))
+			Ω(err.Error()).Should(Equal("wredis: empty key"))
 		})
 	})
 
-	Context("SDIFFSTORE", func() {
-		var diffKey = "wredis::test::sets::diff"
+	Context("SDiffStore", func() {
+		diffKey := "wredis::test::sets::diff"
 
 		It("should successfully store the difference of two sets correctly", func() {
 			diff, err := safe.SDiffStore(diffKey, otherKey, testKey)
@@ -66,23 +65,23 @@ var _ = Describe("Sets", func() {
 		It("should fail if empty dest is passed", func() {
 			_, err := safe.SDiffStore("")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("dest cannot be an empty string"))
+			Ω(err.Error()).Should(Equal("wredis: empty dest"))
 		})
 
 		It("should fail if no set keys are passed", func() {
 			_, err := safe.SDiffStore(diffKey)
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("SDiffStore requires at least 1 input set"))
+			Ω(err.Error()).Should(Equal("wredis: no set keys"))
 		})
 
-		It("should fail if not set keys are passed", func() {
+		It("should fail if any empty set keys are passed", func() {
 			_, err := safe.SDiffStore(diffKey, "key", "", "otherKey")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("set keys cannot be empty strings"))
+			Ω(err.Error()).Should(Equal("wredis: empty set keys"))
 		})
 	})
 
-	Context("SMEMBERS", func() {
+	Context("SMembers", func() {
 		It("should returns the members of a set successfully", func() {
 			members, err := safe.SMembers(testKey)
 			Ω(err).Should(BeNil())
@@ -93,12 +92,12 @@ var _ = Describe("Sets", func() {
 		It("should return an error if key passed is empty", func() {
 			_, err := safe.SMembers("")
 			Ω(err).ShouldNot(BeNil())
-			Ω(err.Error()).Should(Equal("key cannot be an empty string"))
+			Ω(err.Error()).Should(Equal("wredis: empty key"))
 		})
 	})
 
-	Context("SUNIONSTORE", func() {
-		var unionKey = "wredis::test::sets::union"
+	Context("SUnionStore", func() {
+		unionKey := "wredis::test::sets::union"
 
 		It("should successfully store the union of two sets correctly", func() {
 			union, err := safe.SUnionStore(unionKey, otherKey, testKey)
@@ -115,19 +114,19 @@ var _ = Describe("Sets", func() {
 		It("should fail if empty dest is passed", func() {
 			_, err := safe.SUnionStore("")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("dest cannot be an empty string"))
+			Ω(err.Error()).Should(Equal("wredis: empty dest"))
 		})
 
 		It("should fail if no set keys are passed", func() {
 			_, err := safe.SUnionStore(unionKey)
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("SUnionStore requires at least 1 input set"))
+			Ω(err.Error()).Should(Equal("wredis: no set keys"))
 		})
 
-		It("should fail if not set keys are passed", func() {
+		It("should fail if any empty set keys are passed", func() {
 			_, err := safe.SUnionStore(unionKey, "key", "", "otherKey")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("set keys cannot be empty strings"))
+			Ω(err.Error()).Should(Equal("wredis: empty set keys"))
 		})
 	})
 })

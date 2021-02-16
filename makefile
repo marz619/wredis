@@ -10,8 +10,7 @@ all:
 	@echo "  clean         - clean the dist build"
 	@echo "  deps          - pull and setup dependencies"
 	@echo "  test          - run tests"
-	@echo "  tools         - go get's a bunch of tools for development"
-	@echo "  update_deps   - update deps glock file"
+	@echo "  update_deps   - update go mod
 
 build: clean
 	@go build ./...
@@ -22,16 +21,15 @@ clean:
 	@rm -rf ./bin
 
 deps:
-	@glock sync -n github.com/crowdriff/wredis < Glockfile
+	@go mod download
+
+cover:
+	@ginkgo -r -cover
+	@go tool cover -html=wredis.coverprofile
 
 test:
 	@ginkgo -r -v -cover -race
 
-tools:
-	go get github.com/robfig/glock
-	go get github.com/golang/lint/golint
-	go get github.com/onsi/ginkgo/ginkgo
-	go get github.com/onsi/gomega
-
 update_deps:
-	@glock save -n github.com/crowdriff/wredis > Glockfile
+	@go mod verify
+	@go mod tidy

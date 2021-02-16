@@ -3,42 +3,46 @@ package wredis
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 //
 // error helper functions
 //
 
-func boolError(msg string) (bool, error) {
+func boolErr(msg string) (bool, error) {
 	return false, errors.New(msg)
 }
 
-func int64Error(msg string) (int64, error) {
-	return -1, errors.New(msg)
+func int64Err(msg string) (int64, error) {
+	return 0, errors.New(msg)
 }
 
-func stringError(msg string) (string, error) {
+func stringErr(msg string) (string, error) {
 	return "", errors.New(msg)
 }
 
-func stringsError(msg string) ([]string, error) {
+func stringsErr(msg string) ([]string, error) {
 	return nil, errors.New(msg)
 }
 
-func unsafeError(method string) error {
-	return errors.New(unsafeMessage(method))
+func unsafeErr(method string) error {
+	return fmt.Errorf("wredis: %s requires unsafe poolClient. See wredis.Unsafe", method)
 }
 
-func unsafeMessage(method string) string {
-	return fmt.Sprintf("%s requires an Unsafe client. See wredis.NewUnsafe",
-		method)
+//
+// utilties
+//
+
+func empty(s string) bool {
+	return strings.TrimSpace(s) == ""
 }
 
-func checkSimpleStringResponse(cmd, res string, err error) error {
-	if err != nil {
-		return err
-	} else if res != "OK" {
-		return fmt.Errorf("%s did not get OK response: %s", cmd, res)
+func any(ss []string, pred func(string) bool) bool {
+	for _, s := range ss {
+		if pred(s) {
+			return true
+		}
 	}
-	return nil
+	return false
 }

@@ -1,98 +1,126 @@
 package wredis
 
 import (
-	"errors"
-	"fmt"
 	"time"
-
-	"github.com/garyburd/redigo/redis"
 )
 
-const defaultHost = "localhost"
-const defaultPort = 6379
-const defaultDb = 0
+// Wredis Interface
+type Wredis interface {
+	//
+	// Server Commands
+	//
 
-// Wredis is a struct wrapper around the redis.Pool
-// that implements Redis commands (http://redis.io/commands)
-type Wredis struct {
-	pool *redis.Pool
-	safe bool
-}
+	// FlushAll deletes all the keys from all the DB's on the Redis Server.
+	//
+	// See: http://redis.io/commands/flushall
+	FlushAll() error
 
-// Close closes the pool connection
-func (w *Wredis) Close() error {
-	return w.pool.Close()
-}
+	// FlushDB deletes all the keys from the configured DB.
+	//
+	// See: http://redis.io/commands/flushdb
+	FlushDB() error
 
-// NewDefaultPool returns a redis.Pool with a localhost:6379 address
-// and db set to 0.
-func NewDefaultPool() (*Wredis, error) {
-	return NewPool(defaultHost, defaultPort, defaultDb)
-}
+	//
+	// Connection Commands
+	//
 
-// NewPool creates a redis pool connected to the given host:port and db.
-func NewPool(host string, port, db uint) (*Wredis, error) {
-	if host == "" {
-		return nil, errors.New("host cannot be empty")
-	}
-	if port == 0 {
-		return nil, errors.New("port cannot be 0")
-	}
-	addr := fmt.Sprintf("%s:%d", host, int(port))
-	pool := &redis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			return redis.Dial("tcp", addr, redis.DialDatabase(int(db)))
-		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
-	}
-	return &Wredis{pool, true}, nil
-}
+	// Echo echoes the message.
+	//
+	// See: https://redis.io/commands/echo
+	Echo(string) (string, error)
 
-// NewUnsafe returns an unsafe wrapper around the redigo Pool.
-// The lack of safety allows usage of certain methods that could be
-// harmful if accidentally invoked in production (e.g. FlushAll)
-func NewUnsafe(host string, port, db uint) (*Wredis, error) {
-	w, err := NewPool(host, port, db)
-	if err != nil {
-		return nil, err
-	}
-	w.safe = false
-	return w, nil
-}
+	// Ping returns PONG if no message is provided or the message.
+	//
+	// See: https://redis.io/commands/ping
+	Ping(...string) (string, error)
 
-// ExecBool is a helper function to execute any series of commands
-// on a redis.Conn that returns a bool response
-func (w *Wredis) ExecBool(f func(redis.Conn) (bool, error)) (bool, error) {
-	conn := w.pool.Get()
-	defer conn.Close()
-	return f(conn)
-}
+	// Quit asks the server to close the connection.
+	//
+	// See: https://redis.io/commands/quit
+	Quit() error
 
-// ExecInt64 is a helper function to execute any series of commands
-// on a redis.Conn that return an int64 response
-func (w *Wredis) ExecInt64(f func(redis.Conn) (int64, error)) (int64, error) {
-	conn := w.pool.Get()
-	defer conn.Close()
-	return f(conn)
-}
+	// Select selects the Database specified by the parameter.
+	//
+	// See: https://redis.io/commands/select
+	Select(uint) (Wredis, error)
 
-// ExecString is a helper function to execute any series of commands
-// on a redis.Conn that return a string response
-func (w *Wredis) ExecString(f func(redis.Conn) (string, error)) (string, error) {
-	conn := w.pool.Get()
-	defer conn.Close()
-	return f(conn)
-}
+	//
+	// Keys Commands
+	//
 
-// ExecStrings is a helper function to execute any series of commands
-// on a redis.Conn that return a string slice response
-func (w *Wredis) ExecStrings(f func(redis.Conn) ([]string, error)) ([]string, error) {
-	conn := w.pool.Get()
-	defer conn.Close()
-	return f(conn)
+	// Del deletes one or more keys from Redis and returns a count of how many keys
+	// were actually deleted.
+	//
+	// See: http://redis.io/commands/del
+	Del(...string) (int64, error)
+
+	// Exists checks for the existence of `key` in Redis.
+	//
+	// See: http://redis.io/commands/exists
+	Exists(string) (bool, error)
+
+	// Expire sets a timeout of "seconds" on "key".
+	//
+	// See: http://redis.io/commands/expire
+	Expire(string, int) (bool, error)
+
+	// Keys takes a pattern and returns any/all keys matching the pattern.
+	//
+	// See: http://redis.io/commands/keys
+	Keys(string) ([]string, error)
+
+	// Rename will rename some key "from" to "to".
+	//
+	// See: `http://redis.io/commands/rename`
+	Rename(string, string) error
+
+	// Lists
+	LPush(string, ...string) (int64, error)
+	LLen(string) (int64, error)
+	RPop(string) (string, error)
+
+	// Sets
+	SAdd(string, ...string) (int64, error)
+	SCard(string) (int64, error)
+	SDiffStore(string, ...string) (int64, error)
+	SMembers(string) ([]string, error)
+	SUnionStore(string, ...string) (int64, error)
+
+	// Strings
+	Append(string, string) (int64, error)
+	Get(string) (string, error)
+	Incr(string) (int64, error)
+	MGet(...string) ([]string, error)
+	Set(string, string) error
+	SetEx(string, string, uint) error
+
+	// Close
+	Close() error
+
+	// convenience functions
+
+	// Exec<type> Funcs
+	Bool(boolFunc) (bool, error)
+	Int64(int64Func) (int64, error)
+	String(stringFunc) (string, error)
+	Strings(stringsFunc) ([]string, error)
+
+	// Convenience funcions
+
+	Appends(string, string, ...string) (int64, error)
+
+	// Delete is an alias for the Del method
+	Delete(...string) (int64, error)
+
+	// DelPattern is Del/Delete but uses the provided pattern and executs
+	// a Keys command first, to fetch the set of *ALL* keys that match; and
+	// subsequently executs a Del(...keys).
+	//
+	// NOTE: the usage of Keys(pattern) may cause issues in Production
+	//		 environments with large databases.
+	DelPattern(string) (int64, error)
+
+	// SetExDuration is SetEx but allows a time.Duration to be used as the
+	// expiry value. It must be >= 1 * time.Second or it will return an error.
+	SetExDuration(string, string, time.Duration) error
 }
