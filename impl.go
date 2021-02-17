@@ -8,8 +8,11 @@ import (
 	"github.com/garyburd/redigo/redis"
 )
 
-// interface check
-var _ Wredis = &impl{}
+// interface checks
+var (
+	_ Wredis      = &impl{}
+	_ Transaction = &impl{}
+)
 
 // impl is a simple wrapper around the redis.Pool, which implements the
 // Wredis interface
