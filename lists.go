@@ -6,7 +6,7 @@ import (
 
 // LPush inserts the provided item(s) at the head of the list stored at key. For
 // more information, see http://redis.io/commands/lpush.
-func (w *poolClient) LPush(key string, items ...string) (int64, error) {
+func (w *impl) LPush(key string, items ...string) (int64, error) {
 	if empty(key) {
 		return int64Err("wredis: empty key")
 	}
@@ -26,7 +26,7 @@ func (w *poolClient) LPush(key string, items ...string) (int64, error) {
 
 // RPop removes and returns the last element of the list stored at key. For more
 // information, see http://redis.io/commands/rpop.
-func (w *poolClient) RPop(key string) (string, error) {
+func (w *impl) RPop(key string) (string, error) {
 	if empty(key) {
 		return stringErr("wredis: empty key")
 	}
@@ -38,7 +38,7 @@ func (w *poolClient) RPop(key string) (string, error) {
 
 // LLen returns the length of the list stored at key. For more information, see
 // http://redis.io/commands/llen.
-func (w *poolClient) LLen(key string) (int64, error) {
+func (w *impl) LLen(key string) (int64, error) {
 	if empty(key) {
 		return int64Err("wredis: empty key")
 	}

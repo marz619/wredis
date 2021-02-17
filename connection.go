@@ -9,34 +9,38 @@ import (
 // Echo echoes the message.
 //
 // See: https://redis.io/commands/echo
-func (w *poolClient) Echo(msg string) (string, error) {
+func (w *impl) Echo(msg string) (string, error) {
 	return w.match("Echo", msg, func(conn redis.Conn) (string, error) {
 		return redis.String(conn.Do("ECHO", redis.Args{}.Add(msg)...))
 	})
 }
 
-// Ping returns PONG if no message is provided or the message.
+// Ping returns PONG if no message is provided or the message. As the PING
+// command only accepts a single argument, we'll add the constraint to our
+// implementation.
 //
 // See: https://redis.io/commands/ping
-func (w *poolClient) Ping(msg ...string) (string, error) {
+func (w *impl) Ping(msg ...string) (string, error) {
 	if len(msg) > 1 {
 		return stringErr("wredis: ping single message")
 	}
 
-	exp := "PONG"
+	// if no msg is provided, Redis will return PONG
+	expResp, args := "PONG", redis.Args{}
 	if len(msg) == 1 {
-		exp = msg[0]
+		args.Add(msg[0])
+		expResp = msg[0]
 	}
 
-	return w.match("Ping", exp, func(conn redis.Conn) (string, error) {
-		return redis.String(conn.Do("PING", redis.Args{}.AddFlat(msg)...))
+	return w.match("Ping", expResp, func(conn redis.Conn) (string, error) {
+		return redis.String(conn.Do("PING", args...))
 	})
 }
 
 // Quit asks the server to close the connection.
 //
 // See: https://redis.io/commands/quit
-func (w *poolClient) Quit() error {
+func (w *impl) Quit() error {
 	return w.ok("Quit", func(conn redis.Conn) (string, error) {
 		return redis.String(conn.Do("QUIT"))
 	})
@@ -51,9 +55,9 @@ func (w *poolClient) Quit() error {
 //
 // 1. Select only modifes the "current" Connection
 // 2. We will return a new Wredis object that is *NOT* Selectable
-func (w *poolClient) Select(db uint) (Wredis, error) {
+func (w *impl) Select(db uint) (Wredis, error) {
 	// Cannot call select in Cluster mode
-	if w.cfg.unselectable {
+	if !w.selectable() {
 		return nil, errors.New("wredis: no select")
 	}
 
@@ -78,4 +82,9 @@ func (w *poolClient) Select(db uint) (Wredis, error) {
 		return nil, err
 	}
 	return pool, nil
+}
+
+// selectable returns if we can Select on this client.
+func (w *impl) selectable() bool {
+	return w.cfg.selectable
 }

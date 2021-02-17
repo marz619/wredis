@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("poolClient", func() {
+var _ = Describe("impl", func() {
 	var pool Wredis
 	var err error
 

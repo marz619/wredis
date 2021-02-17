@@ -6,7 +6,7 @@ import "github.com/garyburd/redigo/redis"
 // otherwise it returns the number of members added to the Set at `dest`.
 //
 // See: http://redis.io/commands/sadd
-func (w *poolClient) SAdd(dest string, members ...string) (int64, error) {
+func (w *impl) SAdd(dest string, members ...string) (int64, error) {
 	if len(members) == 0 {
 		return int64Err("wredis: no members")
 	}
@@ -19,7 +19,7 @@ func (w *poolClient) SAdd(dest string, members ...string) (int64, error) {
 // SCard returns the cardinality (size) of the Set at `key`.
 //
 // See: http://redis.io/commands/scard
-func (w *poolClient) SCard(key string) (int64, error) {
+func (w *impl) SCard(key string) (int64, error) {
 	if empty(key) {
 		return int64Err("wredis: empty key")
 	}
@@ -30,7 +30,7 @@ func (w *poolClient) SCard(key string) (int64, error) {
 
 // SDiffStore executes the SDIFFSTORE command.
 // See `http://redis.io/commands/sdiffstore`
-func (w *poolClient) SDiffStore(dest string, keys ...string) (int64, error) {
+func (w *impl) SDiffStore(dest string, keys ...string) (int64, error) {
 	if empty(dest) {
 		return int64Err("wredis: empty dest")
 	}
@@ -47,7 +47,7 @@ func (w *poolClient) SDiffStore(dest string, keys ...string) (int64, error) {
 
 // SMembers returns the members of the set denoted by `key`.
 // See: http://redis.io/commands/smembers
-func (w *poolClient) SMembers(key string) ([]string, error) {
+func (w *impl) SMembers(key string) ([]string, error) {
 	if empty(key) {
 		return stringsErr("wredis: empty key")
 	}
@@ -58,7 +58,7 @@ func (w *poolClient) SMembers(key string) ([]string, error) {
 
 // SUnionStore implements the SUNIONSTORE command.
 // See `http://redis.io/commands/sunionstore`
-func (w *poolClient) SUnionStore(dest string, keys ...string) (int64, error) {
+func (w *impl) SUnionStore(dest string, keys ...string) (int64, error) {
 	if empty(dest) {
 		return int64Err("wredis: empty dest")
 	}

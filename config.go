@@ -18,12 +18,13 @@ type Config struct {
 	MaxActive       int
 	MaxConnLifetime time.Duration
 	MaxIdle         int
-	Port            int
 	Password        string
+	Port            int
 	TestOnBorrower  func(Config) borrowFunc
 	Wait            bool
 	// private config options
-	unselectable bool
+	selectable  bool
+	transacting bool
 }
 
 var nilCfg = Config{}
@@ -46,12 +47,13 @@ func (c Config) Copy(opts ...Option) (Config, error) {
 		MaxActive:       c.MaxActive,
 		MaxConnLifetime: c.MaxConnLifetime,
 		MaxIdle:         c.MaxIdle,
-		Port:            c.Port,
 		Password:        c.Password,
+		Port:            c.Port,
 		TestOnBorrower:  c.TestOnBorrower,
 		Wait:            c.Wait,
 		// private config options
-		unselectable: c.unselectable,
+		selectable:  c.selectable,
+		transacting: c.transacting,
 	}
 
 	// apply new/modifying Option(s)
@@ -96,7 +98,8 @@ func defaultConfig() Config {
 		Port:            6379,
 		Wait:            false,
 		// private config options
-		unselectable: false,
+		transacting: false,
+		selectable:  true,
 	}
 	// set the two func config values
 	cfg.Dialer = defaultDialer
@@ -156,10 +159,21 @@ func noopTestOnBorrower(cfg Config) borrowFunc {
 // Option used to configure the Config
 type Option func(Config) (Config, error)
 
-// unselectable disallows the use of Select
+func transacting() Option {
+	return func(cfg Config) (Config, error) {
+		cfg.transacting = true
+		return cfg, nil
+	}
+}
+
+// unselectable disallows the use of Select. It is a guard against being able
+// to call Select against an instance of Wredis returned by a call to Select;
+//
+// NOTE: this might run into a conflict if the DBSWAP command is used, as the
+//       data being returned will be from the swapped database.
 func unselectable() Option {
 	return func(cfg Config) (Config, error) {
-		cfg.unselectable = true
+		cfg.selectable = false
 		return cfg, nil
 	}
 }

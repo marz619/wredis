@@ -11,7 +11,7 @@ import (
 // were actually deleted.
 //
 // See: http://redis.io/commands/del
-func (w *poolClient) Del(keys ...string) (int64, error) {
+func (w *impl) Del(keys ...string) (int64, error) {
 	if len(keys) == 0 {
 		return int64Err("wredis: no keys")
 	}
@@ -25,7 +25,7 @@ func (w *poolClient) Del(keys ...string) (int64, error) {
 }
 
 // Delete is an alias for the Del method
-func (w *poolClient) Delete(keys ...string) (int64, error) {
+func (w *impl) Delete(keys ...string) (int64, error) {
 	return w.Del(keys...)
 }
 
@@ -34,7 +34,7 @@ func (w *poolClient) Delete(keys ...string) (int64, error) {
 //
 // See: http://redis.io/commands/keys
 // See: http://redis.io/commands/del
-func (w *poolClient) DelPattern(pattern string) (int64, error) {
+func (w *impl) DelPattern(pattern string) (int64, error) {
 	if !w.unsafe {
 		return int64Err(unsafeErr("DelPattern").Error())
 	}
@@ -58,7 +58,7 @@ func (w *poolClient) DelPattern(pattern string) (int64, error) {
 // response regarding a key's existence.
 //
 // See: http://redis.io/commands/exists
-func (w *poolClient) Exists(key string) (bool, error) {
+func (w *impl) Exists(key string) (bool, error) {
 	if empty(key) {
 		return boolErr("wredis: empty key")
 	}
@@ -72,7 +72,7 @@ func (w *poolClient) Exists(key string) (bool, error) {
 // `false, nil` is returned. On success, `true, nil` is returned.
 //
 // See: http://redis.io/commands/expire
-func (w *poolClient) Expire(key string, seconds int) (bool, error) {
+func (w *impl) Expire(key string, seconds int) (bool, error) {
 	if empty(key) {
 		return boolErr("wredis: empty key")
 	}
@@ -84,7 +84,7 @@ func (w *poolClient) Expire(key string, seconds int) (bool, error) {
 // Keys takes a pattern and returns any/all keys matching the pattern.
 //
 // See: http://redis.io/commands/keys
-func (w *poolClient) Keys(pattern string) ([]string, error) {
+func (w *impl) Keys(pattern string) ([]string, error) {
 	if empty(pattern) {
 		return stringsErr("wredis: empty pattern")
 	}
@@ -96,7 +96,7 @@ func (w *poolClient) Keys(pattern string) ([]string, error) {
 // Rename will rename some "from" to "to".
 //
 // See: `http://redis.io/commands/rename`
-func (w *poolClient) Rename(from, to string) error {
+func (w *impl) Rename(from, to string) error {
 	if empty(from) {
 		return errors.New("wredis: empty from")
 	}

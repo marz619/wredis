@@ -9,23 +9,23 @@ import (
 )
 
 // interface check
-var _ Wredis = &poolClient{}
+var _ Wredis = &impl{}
 
-// poolClient is a simple wrapper around the redis.Pool, which implements the
+// impl is a simple wrapper around the redis.Pool, which implements the
 // Wredis interface
 //
 // See: http://redis.io/commands
-type poolClient struct {
+type impl struct {
 	cfg    Config      // Config this was intialised with
 	pool   *redis.Pool // the underlying redis connection pool
-	unsafe bool        // safe poolClient?
+	unsafe bool        // safe impl?
 
 	mu     sync.RWMutex
 	counts map[string]int // command counts
 }
 
 // get the command counts
-func (w *poolClient) stats() CMDCounts {
+func (w *impl) stats() CMDCounts {
 	w.mu.RLock()
 	defer w.mu.Unlock()
 
@@ -37,19 +37,19 @@ func (w *poolClient) stats() CMDCounts {
 }
 
 // increment provided command count
-func (w *poolClient) inc(cmd string) {
+func (w *impl) inc(cmd string) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.counts[cmd]++
 }
 
 // Close will close the *redis.Pool
-func (w *poolClient) Close() error {
+func (w *impl) Close() error {
 	return w.pool.Close()
 }
 
 // Conn returns a redis.Conn from the underlying pool
-func (w *poolClient) Conn() (redis.Conn, error) {
+func (w *impl) Conn() (redis.Conn, error) {
 	// get a connection from the pool
 	conn := w.pool.Get()
 	// check the connection was established without error
@@ -59,7 +59,7 @@ func (w *poolClient) Conn() (redis.Conn, error) {
 	return conn, nil
 }
 
-// Stats contains poolClient statistics.
+// Stats contains impl statistics.
 type Stats struct {
 	Stats  redis.PoolStats
 	Counts CMDCounts
@@ -77,7 +77,7 @@ func (cc CMDCounts) Count(cmd string) int {
 }
 
 // Stats returns the current statstics.
-func (w *poolClient) Stats() Stats {
+func (w *impl) Stats() Stats {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -89,8 +89,8 @@ func (w *poolClient) Stats() Stats {
 
 var nilErr error = nil
 
-// new returns a "safe" *poolClient poolClient with the configured options
-func newPoolClient(cfg Config) (*poolClient, error) {
+// new returns a "safe" *impl impl with the configured options
+func newPoolClient(cfg Config) (*impl, error) {
 	// set up the *redis.Pool with our Config
 	pool := &redis.Pool{
 		MaxActive:       cfg.MaxActive,
@@ -102,14 +102,14 @@ func newPoolClient(cfg Config) (*poolClient, error) {
 		Wait:            cfg.Wait,
 	}
 
-	return &poolClient{
+	return &impl{
 		cfg:    cfg,
 		pool:   pool,
 		counts: make(map[string]int),
 	}, nil
 }
 
-// Safe returns a "safe" *poolClient poolClient configured with the provided options.
+// Safe returns a "safe" *impl impl configured with the provided options.
 func Safe(opts ...Option) (Wredis, error) {
 	cfg, err := newConfig(opts...)
 	if err != nil {
@@ -118,7 +118,7 @@ func Safe(opts ...Option) (Wredis, error) {
 	return newPoolClient(cfg)
 }
 
-// Unsafe returns an "unsafe" *poolClient poolClient configured with the provided
+// Unsafe returns an "unsafe" *impl impl configured with the provided
 // options. The "unsafe"ness allows usage of certain methods that could be
 // harmful if accidentally invoked in a production environment (e.g. FlushAll)
 func Unsafe(opts ...Option) (Wredis, error) {
@@ -134,14 +134,21 @@ func Unsafe(opts ...Option) (Wredis, error) {
 	return w, nil
 }
 
-func (w *poolClient) ok(cmd string, f stringFunc) error {
+// ok is a convenience method for checking if we received the OK simple string
+// response; while the Redis Protocol returns a `+OK\r\n` response; redigo will
+// strip the protocol response and returns the actual string.
+//
+// See: https://redis.io/topics/protocol#resp-simple-strings
+func (w *impl) ok(cmd string, f stringFunc) error {
 	_, err := w.match(cmd, "OK", f)
 	return err
 }
 
 const matchErrFmt = `wredis: %s expected "%s" response, got: "%s"`
 
-func (w *poolClient) match(cmd, m string, f stringFunc) (string, error) {
+// match is a convenience wrapper that ensure we got "some" expected response
+// from Redis.
+func (w *impl) match(cmd, m string, f stringFunc) (string, error) {
 	res, err := w.String(f)
 	if err != nil {
 		return stringErr(err.Error())
@@ -154,6 +161,7 @@ func (w *poolClient) match(cmd, m string, f stringFunc) (string, error) {
 	return res, nil
 }
 
+// convience aliases
 type (
 	boolFunc    func(redis.Conn) (bool, error)
 	int64Func   func(redis.Conn) (int64, error)
@@ -166,9 +174,9 @@ func Close(conn redis.Conn) error {
 	return conn.Close()
 }
 
-// Bool is a helper function to execute any series of commands
-// on a redis.Conn that returns a bool response
-func (w *poolClient) Bool(f boolFunc) (bool, error) {
+// Bool is a helper function to execute any series of commands over a
+// redis.Conn that returns a bool response.
+func (w *impl) Bool(f boolFunc) (bool, error) {
 	conn, err := w.Conn()
 	if err != nil {
 		return boolErr(err.Error())
@@ -177,9 +185,9 @@ func (w *poolClient) Bool(f boolFunc) (bool, error) {
 	return f(conn)
 }
 
-// Int64 is a helper function to execute any series of commands
-// on a redis.Conn that return an int64 response
-func (w *poolClient) Int64(f int64Func) (int64, error) {
+// Int64 is a helper function to execute any series of commands over a
+// redis.Conn that return an int64 response.
+func (w *impl) Int64(f int64Func) (int64, error) {
 	conn, err := w.Conn()
 	if err != nil {
 		return int64Err(err.Error())
@@ -188,9 +196,9 @@ func (w *poolClient) Int64(f int64Func) (int64, error) {
 	return f(conn)
 }
 
-// String is a helper function to execute any series of commands
-// on a redis.Conn that return a string response
-func (w *poolClient) String(f stringFunc) (string, error) {
+// String is a helper function to execute any series of commands over a
+// redis.Conn that return a string response.
+func (w *impl) String(f stringFunc) (string, error) {
 	conn, err := w.Conn()
 	if err != nil {
 		return stringErr(err.Error())
@@ -199,9 +207,9 @@ func (w *poolClient) String(f stringFunc) (string, error) {
 	return f(conn)
 }
 
-// Strings is a helper function to execute any series of commands
-// on a redis.Conn that return a string slice response
-func (w *poolClient) Strings(f stringsFunc) ([]string, error) {
+// Strings is a helper function to execute any series of commands over a
+// redis.Conn that return a string slice response.
+func (w *impl) Strings(f stringsFunc) ([]string, error) {
 	conn, err := w.Conn()
 	if err != nil {
 		return stringsErr(err.Error())
@@ -217,29 +225,29 @@ func (w *poolClient) Strings(f stringsFunc) ([]string, error) {
 // }
 
 // // Bool is a helper function to execute any series of commands
-// // on a redis.Conn that returns a bool response
-// func (w *poolClient) Bool(f DoerCloser, cmd string, args ...interface{}) (bool, error) {
+// // over a redis.Conn that returns a bool response
+// func (w *impl) Bool(f DoerCloser, cmd string, args ...interface{}) (bool, error) {
 // 	defer f.Close()
 // 	return redis.Bool(f.Do(cmd, args...))
 // }
 
 // // Int64 is a helper function to execute any series of commands
-// // on a redis.Conn that return an int64 response
-// func (w *poolClient) Int64(f DoerCloser, cmd string, args ...interface{}) (int64, error) {
+// // over a redis.Conn that return an int64 response
+// func (w *impl) Int64(f DoerCloser, cmd string, args ...interface{}) (int64, error) {
 // 	defer f.Close()
 // 	return redis.Int64(f.Do(cmd, args...))
 // }
 
 // // String is a helper function to execute any series of commands
-// // on a redis.Conn that return a string response
-// func (w *poolClient) String(f DoerCloser, cmd string, args ...interface{}) (string, error) {
+// // over a redis.Conn that return a string response
+// func (w *impl) String(f DoerCloser, cmd string, args ...interface{}) (string, error) {
 // 	defer f.Close()
 // 	return redis.String(f.Do(cmd, args...))
 // }
 
 // // Strings is a helper function to execute any series of commands
-// // on a redis.Conn that return a string slice response
-// func (w *poolClient) Strings(f DoerCloser, cmd string, args ...interface{}) ([]string, error) {
+// // over a redis.Conn that return a string slice response
+// func (w *impl) Strings(f DoerCloser, cmd string, args ...interface{}) ([]string, error) {
 // 	defer f.Close()
 // 	return redis.Strings(f.Do(cmd, args...))
 // }

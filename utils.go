@@ -27,7 +27,7 @@ func stringsErr(msg string) ([]string, error) {
 }
 
 func unsafeErr(method string) error {
-	return fmt.Errorf("wredis: %s requires unsafe poolClient. See wredis.Unsafe", method)
+	return fmt.Errorf("wredis: %s requires unsafe impl. See wredis.Unsafe", method)
 }
 
 //

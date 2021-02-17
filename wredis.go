@@ -44,6 +44,9 @@ type Wredis interface {
 	// See: https://redis.io/commands/select
 	Select(uint) (Wredis, error)
 
+	// selectable returns if we can call Select on this client
+	selectable() bool
+
 	//
 	// Keys Commands
 	//
@@ -97,6 +100,27 @@ type Wredis interface {
 	// Close
 	Close() error
 
+	// Transaction
+
+	// Multi is our entry into Transaction
+	//
+	// See: https://redis.io/commands/multi
+	Multi() (Transaction, error)
+
+	// Watch marks the given keys to be watched fo conditional execution of a
+	// transaction.
+	//
+	// See: https://redis.io/commands/watch
+	Watch(...string) error
+
+	// Uwatch flushes all previously watched keys for this transaction.
+	//
+	// See: https://redis.io/commands/unwatch
+	Unwatch() error
+
+	// transacting returns if we're in transaction mode
+	transacting() bool
+
 	// convenience functions
 
 	// Exec<type> Funcs
@@ -107,6 +131,7 @@ type Wredis interface {
 
 	// Convenience funcions
 
+	// Appends calls a s
 	Appends(string, string, ...string) (int64, error)
 
 	// Delete is an alias for the Del method
@@ -123,4 +148,26 @@ type Wredis interface {
 	// SetExDuration is SetEx but allows a time.Duration to be used as the
 	// expiry value. It must be >= 1 * time.Second or it will return an error.
 	SetExDuration(string, string, time.Duration) error
+}
+
+// Transaction adds the transaction based commands.
+//
+// NOTE: since Wredis.Multi returns this interface, which embeds a Wredis, you
+//       could technically call Multi again in a recursive manner; however our
+//       internal implementation detail will prevent this by raising an error
+//
+// See: https://redis.io/topics/transactions
+type Transaction interface {
+	// we can execute all regular Wredis commands within a Transaction.
+	Wredis
+
+	// Exec executes all previously queued commands in this transaction.
+	//
+	// See: https://redis.io/commands/exec
+	Exec() ([]interface{}, error)
+
+	// Discard flushes all previously queued commands in this transaction.
+	//
+	// See: https://redis.io/commands/discard
+	Discard() error
 }

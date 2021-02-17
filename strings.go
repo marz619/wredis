@@ -9,8 +9,10 @@ import (
 )
 
 // Append the value to the string denoted by key. If the key does not exist,
-// then
-func (w *poolClient) Append(key, value string) (int64, error) {
+// then it is created and set as an empty string.
+//
+// See: https://redis.io/commands/append
+func (w *impl) Append(key, value string) (int64, error) {
 	if empty(key) {
 		return int64Err("wredis: empty key")
 	}
@@ -19,14 +21,18 @@ func (w *poolClient) Append(key, value string) (int64, error) {
 	})
 }
 
-func (w *poolClient) Appends(key, sep string, values ...string) (int64, error) {
+// Appends is a convenience wrapper that accepts a variadic number of strings
+// and pre-joins them before calling Append.
+//
+// See: https://redis.io/commands/append
+func (w *impl) Appends(key, sep string, values ...string) (int64, error) {
 	return w.Append(key, strings.Join(values, sep))
 }
 
 // Get retrieves the string value for some key.
 //
 // See: http://redis.io/commands/get
-func (w *poolClient) Get(key string) (string, error) {
+func (w *impl) Get(key string) (string, error) {
 	if empty(key) {
 		return stringErr("wredis: empty key")
 	}
@@ -39,7 +45,7 @@ func (w *poolClient) Get(key string) (string, error) {
 // an empty string is returned.
 //
 // See: http://redis.io/commands/mget.
-func (w *poolClient) MGet(keys ...string) ([]string, error) {
+func (w *impl) MGet(keys ...string) ([]string, error) {
 	if any(keys, empty) {
 		return stringsErr("wredis: empty keys")
 	}
@@ -50,8 +56,9 @@ func (w *poolClient) MGet(keys ...string) ([]string, error) {
 }
 
 // Incr increments the number stored at key by one.
+//
 // See: http://redis.io/commands/incr
-func (w *poolClient) Incr(key string) (int64, error) {
+func (w *impl) Incr(key string) (int64, error) {
 	if empty(key) {
 		return int64Err("wredis: empty key")
 	}
@@ -61,8 +68,9 @@ func (w *poolClient) Incr(key string) (int64, error) {
 }
 
 // Set a string value to some key.
+//
 // See: http://redis.io/commands/set
-func (w *poolClient) Set(key, value string) error {
+func (w *impl) Set(key, value string) error {
 	if empty(key) {
 		return errors.New("wredis: empty key")
 	}
@@ -74,7 +82,7 @@ func (w *poolClient) Set(key, value string) error {
 // SetEx sets key's to value with an expiry time measured in seconds.
 //
 // See: http://redis.io/commands/setex
-func (w *poolClient) SetEx(key, value string, seconds uint) error {
+func (w *impl) SetEx(key, value string, seconds uint) error {
 	if empty(key) {
 		return errors.New("wredis: empty key")
 	}
@@ -89,6 +97,8 @@ func (w *poolClient) SetEx(key, value string, seconds uint) error {
 
 // SetExDuration is a convenience method that calls SetEx, but sets the expiry
 // value using a time.Duration.
-func (w *poolClient) SetExDuration(k, v string, d time.Duration) error {
+//
+// See: http://redis.io/commands/setex
+func (w *impl) SetExDuration(k, v string, d time.Duration) error {
 	return w.SetEx(k, v, uint(d.Seconds()))
 }

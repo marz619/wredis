@@ -1,8 +1,8 @@
-# poolClient
+# Wredis
 
-[![Build Status](https://travis-ci.org/crowdriff/wredis.svg?branch=master)](https://travis-ci.org/crowdriff/wredis) [![Go Report Card](https://goreportcard.com/badge/github.com/crowdriff/wredis)](https://goreportcard.com/report/github.com/crowdriff/wredis) [![Coverage Status](https://coveralls.io/repos/github/crowdriff/wredis/badge.svg?branch=master)](https://coveralls.io/github/crowdriff/wredis?branch=master) [![GoDoc](https://godoc.org/github.com/crowdriff/wredis?status.svg)](https://godoc.org/github.com/crowdriff/wredis)
+[![Build Status](https://travis-ci.org/crowdriff/wredis.svg?branch=master)](https://travis-ci.org/crowdriff/wredis) [![Go Report Card](https://goreportcard.com/badge/github.com/crowdriff/wredis)](https://goreportcard.com/report/github.com/crowdriff/wredis) [![Coverage Status](https://coveralls.io/repos/github/crowdriff/wredis/badge.svg?branch=master)](https://coveralls.io/github/crowdriff/wredis?branch=master) [![Go Reference](https://pkg.go.dev/badge/github.com/crowdriff/wredis.svg)](https://pkg.go.dev/github.com/crowdriff/wredis)
 
-poolClient is a wrapper around the [redigo](https://github.com/garyburd/redigo) `redis.Pool` and provides an easy-to-use API for [Redis commands](http://redis.io/commands)
+Wredis is an _inteface_ wrapper around the [redigo](https://github.com/garyburd/redigo) `redis.Pool` and provides an easy-to-use API for [Redis commands](http://redis.io/commands)
 
 ## Getting Started
 
@@ -17,32 +17,37 @@ go get github.com/crowdriff/wredis
 [API Reference](https://pkg.go.dev/github.com/crowdriff/wredis)
 
 ```go
-import (
-  "log"
+package main
 
-  "github.com/crowdriff/wredis"
+import (
+	"log"
+
+	"github.com/crowdriff/wredis"
 )
 
-var w *wredis.poolClient
+// global Wredis
+
+var w Wredis
 
 func main() {
-  var err error
-  if w, err = wredis.NewDefaultPool(); err != nil {
-    log.Fatal(err.Error())
-  }
-  defer w.Close()
+	var err error
+	if w, err = wredis.NewDefaultPool(); err != nil {
+		log.Fatal(err.Error())
+	}
+	defer w.Close()
 
-  if err = w.Set("mykey", "myval"); err != nil {
-    log.Fatal(err.Error())
-  }
+	if err = w.Set("mykey", "myval"); err != nil {
+		log.Fatal(err.Error())
+	}
 
-  val, err := w.Get("mykey")
-  if err != nil {
-    log.Fatal(err.Error())
-  }
+	val, err := w.Get("mykey")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-  log.Println(val)
+	log.Println(val)
 }
+
 ```
 
 ### Implemented Commands
@@ -57,8 +62,8 @@ func main() {
   * Keys: fetch a list of keys that match the given pattern
   * Rename: rename a key
 * __Server__
-  * FlushAll: Flush the contents of the redis server (requires unsafe poolClient)
-  * FlushDb: Flush the contents of a specific redis db (requires unsafe poolClient)
+  * FlushAll: Flush the contents of the redis server (requires Unsafe Wredis)
+  * FlushDb: Flush the contents of a specific redis db (requires Unsafe Wredis)
 * __Sets__
   * SAdd: add members to a set
   * SCard: count of a set
@@ -91,8 +96,8 @@ make deps
 
 ### Contribute
 
-1. Fork  
-2. Make changes  
-3. Add tests  
-4. Run `make test`  
-5. Send a PR  
+1. Fork
+2. Make changes
+3. Add tests
+4. Run `make test`
+5. Send a PR

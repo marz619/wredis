@@ -12,10 +12,10 @@ import (
 // TestProcess is the root test process
 func TestProcess(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "poolClient Suite")
+	RunSpecs(t, "impl Suite")
 }
 
-// safe and unsafe are global pointer to poolClient
+// safe and unsafe are global pointer to impl
 // objects used for testing
 var (
 	safe   Wredis
@@ -26,11 +26,11 @@ var (
 var _ = BeforeSuite(func() {
 	var err error
 
-	// init safe poolClient
+	// init safe impl
 	safe, err = Safe()
 	Ω(err).Should(BeNil())
 
-	// init unsafe poolClient
+	// init unsafe impl
 	unsafe, err = Unsafe()
 	Ω(err).Should(BeNil())
 })
