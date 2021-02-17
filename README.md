@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/crowdriff/wredis.svg?branch=master)](https://travis-ci.org/crowdriff/wredis) [![Go Report Card](https://goreportcard.com/badge/github.com/crowdriff/wredis)](https://goreportcard.com/report/github.com/crowdriff/wredis) [![Coverage Status](https://coveralls.io/repos/github/crowdriff/wredis/badge.svg?branch=master)](https://coveralls.io/github/crowdriff/wredis?branch=master) [![Go Reference](https://pkg.go.dev/badge/github.com/crowdriff/wredis.svg)](https://pkg.go.dev/github.com/crowdriff/wredis)
 
-Wredis is an _inteface_ wrapper around the [redigo](https://github.com/garyburd/redigo) `redis.Pool` and provides an easy-to-use API for [Redis commands](http://redis.io/commands)
+Wredis is an _interface_ wrapper around the [redigo](https://github.com/garyburd/redigo) `redis.Pool` and provides an easy-to-use API for [Redis commands](http://redis.io/commands)
 
 ## Getting Started
 
