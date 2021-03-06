@@ -158,7 +158,7 @@ type Wredis interface {
 //
 // NOTE: since Wredis.Multi returns this interface, which embeds a Wredis, you
 //       could technically call Multi again in a recursive manner; however our
-//       internal implementation detail will prevent this by raising an error
+//       internal implementation will prevent this by returning an error
 //
 // See: https://redis.io/topics/transactions
 type Transaction interface {
