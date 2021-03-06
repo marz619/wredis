@@ -1,28 +1,33 @@
-Wredis [![Build Status](https://travis-ci.org/crowdriff/wredis.svg?branch=master)](https://travis-ci.org/crowdriff/wredis) [![Go Report Card](https://goreportcard.com/badge/github.com/crowdriff/wredis)](https://goreportcard.com/report/github.com/crowdriff/wredis) [![Coverage Status](https://coveralls.io/repos/github/crowdriff/wredis/badge.svg?branch=master)](https://coveralls.io/github/crowdriff/wredis?branch=master) [![GoDoc](https://godoc.org/github.com/crowdriff/wredis?status.svg)](https://godoc.org/github.com/crowdriff/wredis)
-===
+# Wredis
 
-Wredis is a wrapper around the [redigo](https://github.com/garyburd/redigo) `redis.Pool` and provides an easy-to-use API for [Redis commands](http://redis.io/commands)
+[![Build Status](https://travis-ci.org/crowdriff/wredis.svg?branch=master)](https://travis-ci.org/crowdriff/wredis) [![Go Report Card](https://goreportcard.com/badge/github.com/crowdriff/wredis)](https://goreportcard.com/report/github.com/crowdriff/wredis) [![Coverage Status](https://coveralls.io/repos/github/crowdriff/wredis/badge.svg?branch=master)](https://coveralls.io/github/crowdriff/wredis?branch=master) [![Go Reference](https://pkg.go.dev/badge/github.com/crowdriff/wredis.svg)](https://pkg.go.dev/github.com/crowdriff/wredis)
+
+Wredis is an _interface_ wrapper around the [redigo](https://github.com/garyburd/redigo) `redis.Pool` and provides an easy-to-use API for [Redis commands](http://redis.io/commands)
 
 ## Getting Started
 
 ### Go Get
 
-```
+```sh
 go get github.com/crowdriff/wredis
 ```
 
 ### Usage
 
-[API Reference](https://godoc.org/github.com/crowdriff/wredis)
+[API Reference](https://pkg.go.dev/github.com/crowdriff/wredis)
 
 ```go
+package main
+
 import (
 	"log"
 
 	"github.com/crowdriff/wredis"
 )
 
-var w *wredis.Wredis
+// global Wredis
+
+var w Wredis
 
 func main() {
 	var err error
@@ -42,20 +47,23 @@ func main() {
 
 	log.Println(val)
 }
+
 ```
 
 ### Implemented Commands
+
 * __Connection__
   * Select: switch the redis database
 * __Keys__
   * Del: delete a key
+  * Delete: delete a key
   * Exists: does a key exist
   * Expire: set an expiry time for a key
   * Keys: fetch a list of keys that match the given pattern
   * Rename: rename a key
 * __Server__
-  * FlushAll: Flush the contents of the redis server (requires unsafe Wredis)
-  * FlushDb: Flush the contents of a specific redis db (requires unsafe Wredis)
+  * FlushAll: Flush the contents of the redis server (requires Unsafe Wredis)
+  * FlushDb: Flush the contents of a specific redis db (requires Unsafe Wredis)
 * __Sets__
   * SAdd: add members to a set
   * SCard: count of a set
@@ -69,8 +77,9 @@ func main() {
   * SetEx: set a key's value with an expiry in seconds
 
 ### Convenience methods
+
 * __Keys__
-  * DelWithPattern: delete all keys matching a pattern
+  * DelPattern: delete all keys matching a pattern
 * __Server__
   * SelectAndFlushDb: selects a db before flushing it
 * __Strings__
@@ -80,15 +89,15 @@ func main() {
 
 ### Install Tools and Dependencies
 
-```
+```sh
 make tools
 make deps
 ```
 
 ### Contribute
 
-1. Fork  
-2. Make changes  
-3. Add tests  
-4. Run `make test`  
-5. Send a PR  
+1. Fork
+2. Make changes
+3. Add tests
+4. Run `make test`
+5. Send a PR

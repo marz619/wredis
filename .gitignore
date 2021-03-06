@@ -1,4 +1,7 @@
+# files
 *.coverprofile
+dump.rdb
 
+# folders
 tmp/*
 bin/*

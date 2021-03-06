@@ -5,16 +5,16 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Keys", func() {
-
 	testKey := "wredis::test::keys"
 	testVal := "testvalue"
 
-	Describe("DEL", func() {
+	Describe("Del", func() {
 		BeforeEach(func() {
 			Ω(safe.Set(testKey, testVal)).Should(Succeed())
 			Ω(safe.Exists(testKey)).Should(BeTrue())
@@ -32,25 +32,25 @@ var _ = Describe("Keys", func() {
 		It("should fail if not given any keys", func() {
 			_, err := safe.Del()
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("must provide at least 1 key"))
+			Ω(err.Error()).Should(Equal("wredis: no keys"))
 
 			_, err = safe.Del([]string{}...)
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("must provide at least 1 key"))
+			Ω(err.Error()).Should(Equal("wredis: no keys"))
 		})
 
 		It("should fail if any of the keys are empty", func() {
 			_, err := safe.Del("")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("keys cannot be empty strings"))
+			Ω(err.Error()).Should(Equal("wredis: empty keys"))
 
 			_, err = safe.Del([]string{""}...)
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("keys cannot be empty strings"))
+			Ω(err.Error()).Should(Equal("wredis: empty keys"))
 		})
 	})
 
-	Describe("EXISTS", func() {
+	Describe("Exists", func() {
 		AfterEach(func() {
 			Ω(unsafe.FlushAll()).Should(Succeed())
 		})
@@ -67,11 +67,11 @@ var _ = Describe("Keys", func() {
 		It("should fail if given an empty key", func() {
 			_, err := safe.Exists("")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("key cannot be empty"))
+			Ω(err.Error()).Should(Equal("wredis: empty key"))
 		})
 	})
 
-	Describe("EXPIRE", func() {
+	Describe("Expire", func() {
 		AfterEach(func() {
 			Ω(unsafe.FlushAll()).Should(Succeed())
 		})
@@ -79,7 +79,7 @@ var _ = Describe("Keys", func() {
 		It("should return an error if a blank key is provided", func() {
 			_, err := safe.Expire("", 0)
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("key cannot be an empty string"))
+			Ω(err.Error()).Should(Equal("wredis: empty key"))
 		})
 
 		It("should return false when expire called on a non-existing key", func() {
@@ -93,7 +93,7 @@ var _ = Describe("Keys", func() {
 			ok, err := safe.Expire(testKey, 10)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(ok).Should(BeTrue())
-			n, err := safe.ExecInt64(func(conn redis.Conn) (int64, error) {
+			n, err := safe.Int64(func(conn redis.Conn) (int64, error) {
 				return redis.Int64(conn.Do("TTL", testKey))
 			})
 			Ω(err).ShouldNot(HaveOccurred())
@@ -121,7 +121,7 @@ var _ = Describe("Keys", func() {
 		})
 	})
 
-	Describe("KEYS", func() {
+	Describe("Keys", func() {
 		BeforeEach(func() {
 			Ω(safe.Set(testKey, testVal)).Should(Succeed())
 			Ω(safe.Set(fmt.Sprintf("%s::second", testKey), testVal)).Should(
@@ -156,20 +156,20 @@ var _ = Describe("Keys", func() {
 		})
 	})
 
-	Describe("RENAME", func() {
+	Describe("Rename", func() {
 		AfterEach(func() {
 			Ω(unsafe.FlushAll()).Should(Succeed())
 		})
 
 		It("should rename a key successfully", func() {
-			newKey := "wredis::test::new"
+			to := "wredis::test::new"
 			Ω(safe.Set(testKey, testVal)).Should(Succeed())
-			Ω(safe.Rename(testKey, newKey)).Should(Succeed())
+			Ω(safe.Rename(testKey, to)).Should(Succeed())
 
 			// test rename is successful
 			Ω(safe.Exists(testKey)).Should(BeFalse())
-			Ω(safe.Exists(newKey)).Should(BeTrue())
-			Ω(safe.Get(newKey)).Should(Equal(testVal))
+			Ω(safe.Exists(to)).Should(BeTrue())
+			Ω(safe.Get(to)).Should(Equal(testVal))
 		})
 
 		It("should fail if any of the keys are empty strings", func() {

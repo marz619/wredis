@@ -7,9 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Wredis", func() {
-
-	var pool *Wredis
+var _ = Describe("impl", func() {
+	var pool Wredis
 	var err error
 
 	AfterEach(func() {
@@ -19,26 +18,20 @@ var _ = Describe("Wredis", func() {
 		pool = nil
 	})
 
-	It("Should create a new default pool", func() {
-		pool, err = NewDefaultPool()
+	It("should create a new default pool", func() {
+		pool, err = Safe()
 		Ω(err).ShouldNot(HaveOccurred())
 		Ω(pool).ShouldNot(BeNil())
 	})
 
-	It("Should fail to create a new pool given an empty host", func() {
-		_, err = NewPool("", 6379, 0)
+	It("should fail to create a new pool given an invalid port", func() {
+		_, err = Safe(Port(0))
 		Ω(err).Should(HaveOccurred())
-		Ω(err.Error()).Should(Equal("host cannot be empty"))
+		Ω(err.Error()).Should(Equal("wredis: invalid port"))
 	})
 
-	It("Should fail to create a new pool given an invalid port", func() {
-		_, err = NewPool("localhost", 0, 0)
-		Ω(err).Should(HaveOccurred())
-		Ω(err.Error()).Should(Equal("port cannot be 0"))
-	})
-
-	It("Should create an unsafe pool successfully", func() {
-		pool, err = NewUnsafe("localhost", 6379, 0)
+	It("should create an unsafe pool successfully", func() {
+		pool, err = Unsafe()
 		Ω(err).ShouldNot(HaveOccurred())
 		Ω(pool).ShouldNot(BeNil())
 		Ω(pool.FlushAll()).Should(Succeed())

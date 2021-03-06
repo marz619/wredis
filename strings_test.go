@@ -8,7 +8,6 @@ import (
 )
 
 var _ = Describe("Strings", func() {
-
 	var (
 		testKey = "wredis::test::strings"
 		testVal = "testvalue"
@@ -27,11 +26,11 @@ var _ = Describe("Strings", func() {
 		Ω(val).Should(Equal(testVal))
 	})
 
-	Context("MGET", func() {
+	Context("MGet", func() {
 		It("should return an error when a key is empty", func() {
-			_, err := safe.MGet([]string{"1", "2", ""})
+			_, err := safe.MGet("1", "", "3")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("keys cannot be empty"))
+			Ω(err.Error()).Should(Equal("wredis: empty keys"))
 		})
 
 		It("should return all values for the provided keys", func() {
@@ -39,7 +38,7 @@ var _ = Describe("Strings", func() {
 			Ω(safe.Set("1", "one")).Should(Succeed())
 			Ω(safe.Set("2", "two")).Should(Succeed())
 			// get values
-			vals, err := safe.MGet([]string{"1", "2", "3"})
+			vals, err := safe.MGet("1", "2", "3")
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(vals).Should(HaveLen(3))
 			Ω(vals[0]).Should(Equal("one"))
@@ -48,12 +47,11 @@ var _ = Describe("Strings", func() {
 		})
 	})
 
-	Context("INCR", func() {
-
+	Context("Incr", func() {
 		It("should return an error with an empty key provided", func() {
 			_, err := safe.Incr("")
 			Ω(err).Should(HaveOccurred())
-			Ω(err.Error()).Should(Equal("key cannot be an empty string"))
+			Ω(err.Error()).Should(Equal("wredis: empty key"))
 		})
 
 		It("should create and increment a new key", func() {
@@ -71,7 +69,7 @@ var _ = Describe("Strings", func() {
 		})
 	})
 
-	Context("SETEX", func() {
+	Context("SetEx", func() {
 		It("should set a key, which expires successfully", func() {
 			err := safe.SetEx(testKey, testVal, 1)
 			Ω(err).Should(BeNil())
@@ -88,14 +86,13 @@ var _ = Describe("Strings", func() {
 		It("should fail when given an empty key", func() {
 			err := safe.SetEx("", testVal, 1)
 			Ω(err).ShouldNot(BeNil())
-			Ω(err.Error()).Should(Equal("key cannot be an empty string"))
+			Ω(err.Error()).Should(Equal("wredis: empty key"))
 		})
 
-		It("should fail when given a small druation", func() {
+		It("should fail when given less than 1s duration", func() {
 			err := safe.SetExDuration(testKey, testVal, 500*time.Millisecond)
 			Ω(err).ShouldNot(BeNil())
-			Ω(err.Error()).Should(Equal("duration must be at least 1 second"))
+			Ω(err.Error()).Should(Equal("wredis: one second expiry"))
 		})
 	})
-
 })
