@@ -15,7 +15,7 @@ func TestProcess(t *testing.T) {
 	RunSpecs(t, "impl Suite")
 }
 
-// safe and unsafe are global pointer to impl
+// safe and unsafe are global pointers to Wredis used for all the tests.
 // objects used for testing
 var (
 	safe   Wredis
