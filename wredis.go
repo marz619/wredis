@@ -77,7 +77,11 @@ type Wredis interface {
 	// See: `http://redis.io/commands/rename`
 	Rename(string, string) error
 
-	// Lists
+	//
+	// Lists Commands
+	//
+
+	// LPush
 	LPush(string, ...string) (int64, error)
 	LLen(string) (int64, error)
 	RPop(string) (string, error)

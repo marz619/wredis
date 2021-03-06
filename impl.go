@@ -2,6 +2,7 @@ package wredis
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -158,7 +159,7 @@ func (w *impl) match(cmd, m string, f stringFunc) (string, error) {
 	}
 
 	if res != m {
-		return stringErr(fmt.Sprintf(matchErrFmt, cmd, m, res))
+		return stringErr(fmt.Sprintf(matchErrFmt, strings.ToUpper(cmd), m, res))
 	}
 
 	return res, nil
@@ -220,37 +221,3 @@ func (w *impl) Strings(f stringsFunc) ([]string, error) {
 	defer Close(conn)
 	return f(conn)
 }
-
-// // DoerCloser Do(es) & Close(s)
-// type DoerCloser interface {
-// 	Do(string, ...interface{}) (interface{}, error)
-// 	Close() error
-// }
-
-// // Bool is a helper function to execute any series of commands
-// // over a redis.Conn that returns a bool response
-// func (w *impl) Bool(f DoerCloser, cmd string, args ...interface{}) (bool, error) {
-// 	defer f.Close()
-// 	return redis.Bool(f.Do(cmd, args...))
-// }
-
-// // Int64 is a helper function to execute any series of commands
-// // over a redis.Conn that return an int64 response
-// func (w *impl) Int64(f DoerCloser, cmd string, args ...interface{}) (int64, error) {
-// 	defer f.Close()
-// 	return redis.Int64(f.Do(cmd, args...))
-// }
-
-// // String is a helper function to execute any series of commands
-// // over a redis.Conn that return a string response
-// func (w *impl) String(f DoerCloser, cmd string, args ...interface{}) (string, error) {
-// 	defer f.Close()
-// 	return redis.String(f.Do(cmd, args...))
-// }
-
-// // Strings is a helper function to execute any series of commands
-// // over a redis.Conn that return a string slice response
-// func (w *impl) Strings(f DoerCloser, cmd string, args ...interface{}) ([]string, error) {
-// 	defer f.Close()
-// 	return redis.Strings(f.Do(cmd, args...))
-// }
