@@ -129,6 +129,7 @@ type Wredis interface {
 
 	// Exec<type> Funcs
 	Bool(boolFunc) (bool, error)
+	Int(intFunc) (int, error)
 	Int64(int64Func) (int64, error)
 	String(stringFunc) (string, error)
 	Strings(stringsFunc) ([]string, error)

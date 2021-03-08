@@ -14,6 +14,10 @@ func boolErr(msg string) (bool, error) {
 	return false, errors.New(msg)
 }
 
+func intErr(msg string) (int, error) {
+	return 0, errors.New(msg)
+}
+
 func int64Err(msg string) (int64, error) {
 	return 0, errors.New(msg)
 }

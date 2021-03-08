@@ -168,6 +168,7 @@ func (w *impl) match(cmd, m string, f stringFunc) (string, error) {
 // convience aliases
 type (
 	boolFunc    func(redis.Conn) (bool, error)
+	intFunc     func(redis.Conn) (int, error)
 	int64Func   func(redis.Conn) (int64, error)
 	stringFunc  func(redis.Conn) (string, error)
 	stringsFunc func(redis.Conn) ([]string, error)
@@ -184,6 +185,17 @@ func (w *impl) Bool(f boolFunc) (bool, error) {
 	conn, err := w.Conn()
 	if err != nil {
 		return boolErr(err.Error())
+	}
+	defer Close(conn)
+	return f(conn)
+}
+
+// Int is a helper function to execute any series of commands over a redis.Conn
+// that return an int response.
+func (w *impl) Int(f intFunc) (int, error) {
+	conn, err := w.Conn()
+	if err != nil {
+		return intErr(err.Error())
 	}
 	defer Close(conn)
 	return f(conn)
