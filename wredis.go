@@ -82,9 +82,12 @@ type Wredis interface {
 	//
 
 	// LPush
-	LPush(string, ...string) (int64, error)
+	// LIndex(string, int64) (string, error)
 	LLen(string) (int64, error)
+	LPop(string) (string, error)
+	LPush(string, ...string) (int64, error)
 	RPop(string) (string, error)
+	RPush(string, ...string) (int64, error)
 
 	// Sets
 	SAdd(string, ...string) (int64, error)
@@ -129,6 +132,7 @@ type Wredis interface {
 
 	// Exec<type> Funcs
 	Bool(boolFunc) (bool, error)
+	Int(intFunc) (int, error)
 	Int64(int64Func) (int64, error)
 	String(stringFunc) (string, error)
 	Strings(stringsFunc) ([]string, error)
