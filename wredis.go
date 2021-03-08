@@ -82,9 +82,12 @@ type Wredis interface {
 	//
 
 	// LPush
-	LPush(string, ...string) (int64, error)
+	// LIndex(string, int64) (string, error)
 	LLen(string) (int64, error)
+	LPop(string) (string, error)
+	LPush(string, ...string) (int64, error)
 	RPop(string) (string, error)
+	RPush(string, ...string) (int64, error)
 
 	// Sets
 	SAdd(string, ...string) (int64, error)

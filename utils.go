@@ -38,10 +38,12 @@ func unsafeErr(method string) error {
 // utilties
 //
 
+// returns true if a string whos spaces are trimmed is empty
 func empty(s string) bool {
 	return strings.TrimSpace(s) == ""
 }
 
+// returns true if any string in the slice sastisfies the predicate
 func any(ss []string, pred func(string) bool) bool {
 	for _, s := range ss {
 		if pred(s) {
